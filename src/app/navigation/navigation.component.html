@@ -1,0 +1,6 @@
+<p>Navigation</p>
+<ul>
+    <li *ngFor="let item of navArr; even as e; first as f" [ngClass]="{'bg-red': e, 'bg-green': !e, 'bg-blue': f}">
+        <a [routerLink]="item.link">{{ item.title }}</a>
+    </li>
+</ul>

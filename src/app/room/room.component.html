@@ -1,0 +1,9 @@
+<div>
+    <h1>Room Component</h1>
+    <p>Current Parameter is {{ currentParam }}</p>
+    <h3>Links to other params</h3>
+    <a [routerLink]="['./../../room/3']">Room 3</a>
+    <a [routerLink]="['./../../room/4']">Room 4</a>
+    <a [routerLink]="['./../../room/bob']">Room Bob</a>
+    <router-outlet></router-outlet>
+</div>
