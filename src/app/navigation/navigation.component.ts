@@ -3,6 +3,7 @@ import { NavigationItem } from '../../interfaces/navigationItem';
 
 import { RoomService } from './../../services/room.service';
 import { Room } from '../../interfaces/room';
+import { map, take } from 'rxjs/operators';
 
 @Component({
     selector: 'app-navigation',
@@ -13,7 +14,6 @@ import { Room } from '../../interfaces/room';
 export class NavigationComponent {
 
     // declare an array of navigation items that will hold our rooms
-    public roomsAsNavItem: NavigationItem[];
     public navArr: NavigationItem[] = [{
         title: 'Welcome',
         link: 'welcome'
@@ -26,20 +26,27 @@ export class NavigationComponent {
     // inject the service
     constructor( private _roomService: RoomService ) {
 
-        // since the rooms we are getting are of a type Room, if we want them to be in an array of Navigation items, we need to transform
-        // our array into a format that fits our navigation array. I use array.map.
-        this.roomsAsNavItem = this._roomService.rooms.map(roomItem => {
-            // .map iterates through each room, creates an object that has our necessary navigation item fields (title, link), then returns
-            const ourNewNavItem = {
-                title: roomItem.title,
-                link: 'room/' + roomItem.id // remember that the room info only contains the id. we want to navigate to /room/1, not just /1
-            };
-            return ourNewNavItem;
-        }); // end result is that roomsAsNavItem is now an array of navigation items containing room info we got from the service
+        // Now that our data from the service is an observable, we need to handle our data differently
+        // we will now wrap our transformation inside an rxjs/map which will itself be inside a .pipe
+        this._roomService.rooms.pipe( // start our .pipe here
+            // our array.map goes INSIDE our rxjs/map
+            // also note that because I am not using {} on the arrow function for my rxjs/map, it is
+            // implictly returning the result
+            map( (roomList: Room[]) => roomList.map( (eachRoom: Room) => {
+                    return { // return a new navitem
+                        title: eachRoom.title,
+                        link: 'room/' + eachRoom.id
+                    };
+                })
+            ), // don't forget to add the comma since we're adding a .take
+            take(1) // take(1) makes the subscription emit once and ONLY once
+        ).subscribe( (roomsAsNavItem: NavigationItem[]) => {
+            // now we can subscribe to our new list of nav items. the combining of two arrays now goes here
+            for (const navItem of roomsAsNavItem) {
+                this.navArr.push(navItem); // add each iteration of our new array we created to the old one
+            }
+        });
 
-        // now we need to tack it on to our current array
-        for (const navItem of this.roomsAsNavItem) { // remember for..of? We can use it here too!
-            this.navArr.push(navItem); // add each iteration of our new array we created to the old one
-        }
+
     }
 }
